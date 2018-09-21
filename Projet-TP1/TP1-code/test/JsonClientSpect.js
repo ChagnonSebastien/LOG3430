@@ -305,7 +305,7 @@ export default describe('JsonClient', () => {
     const response = {
       ok: true,
       status: 200,
-      statusText: 'statusTest',
+      statusText: 'statusText',
       text: function(){
         return text;
       },
@@ -343,6 +343,144 @@ export default describe('JsonClient', () => {
         },
         method: 'post',
         body: sharedBox
+      });
+    });
+  });
+
+  describe('addRecipient()', () => {
+    
+    var stub;
+
+    const recipient = {
+      id: '59adbccb-87cc-4224-bfd7-314dae796e48',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@email.com',
+      options: {
+        locked: false,
+        bouncedEmail: false,
+        verified: false,
+        contactMethods: [
+          {
+            id: 1,
+            destination: '+55555555555',
+            destinationType: 'office_phone',
+            verified: false,
+            createdAt: '2018-09-01T16:26:07-04:00',
+            updatedAt: '2018-09-01T16:26:07-04:00'
+          },
+          {
+            id: 2,
+            destination: '+1111111111',
+            destinationType: 'cell_phone',
+            verified: true,
+            createdAt: '2018-09-01T16:26:07-04:00',
+            updatedAt: '2018-09-01T16:26:07-04:00'
+          }
+        ]
+      }
+    };
+
+    const text = 'NOT_NULL';
+
+    const response = {
+      ok: true,
+      status: 200,
+      statusText: 'statusText',
+      text: function(){
+        return text;
+      },
+      json: function() {
+        return recipient;
+      }
+    };
+  
+    before(() => {
+      jsonClient = new SharedBox.JsonClient(token, userId, endpoint);
+      stub = sinon.stub(Utils,'fetch');
+      stub.resolves(response);
+    });
+    
+    after(() => {
+      stub.restore();
+    });
+
+    it('must return the correct response', async () => {
+
+      // On appelle la méthde a tester.
+      var promise = await jsonClient.addRecipient(recipient.guid, recipient);
+      expect(promise).to.equal(recipient);
+    });
+
+    it('must make the Ajax request to the right URL', async () => {
+      expect(stub.getCall(1).args[0]).to.equal(`${text}api/sharedboxes/${recipient.guid}/recipients`);
+    });
+
+    it('must make the Ajax request with the right parameters', async () => {
+      expect(stub.getCall(1).args[1]).to.deep.equal({
+        headers: {
+          'Authorization-Token': token,
+          'Content-Type': 'application/json'
+        },
+        method: 'post',
+        body: recipient
+      });
+    });
+  });
+
+  describe('closeSharedbox()', () => {
+    
+    var stub;
+
+    const guid = '59adbccb-87cc-4224-bfd7-314dae796e48';
+
+    const jsonResponse = {
+      result: true,
+      message: 'Sharedbox successfully closed.' 
+    };
+
+    const text = 'NOT_NULL';
+
+    const response = {
+      ok: true,
+      status: 200,
+      statusText: 'statusText',
+      text: function(){
+        return text;
+      },
+      json: function() {
+        return jsonResponse;
+      }
+    };
+  
+    before(() => {
+      jsonClient = new SharedBox.JsonClient(token, userId, endpoint);
+      stub = sinon.stub(Utils,'fetch');
+      stub.resolves(response);
+    });
+    
+    after(() => {
+      stub.restore();
+    });
+
+    it('must return the correct response', async () => {
+
+      // On appelle la méthde a tester.
+      var promise = await jsonClient.closeSharedbox(guid);
+      expect(promise).to.equal(jsonResponse);
+    });
+
+    it('must make the Ajax request to the right URL', async () => {
+      expect(stub.getCall(1).args[0]).to.equal(`${text}api/sharedboxes/${guid}/close`);
+    });
+
+    it('must make the Ajax request with the right parameters', async () => {
+      expect(stub.getCall(1).args[1]).to.deep.equal({
+        headers: {
+          'Authorization-Token': token,
+          'Content-Type': 'application/json'
+        },
+        method: 'patch'
       });
     });
   });
