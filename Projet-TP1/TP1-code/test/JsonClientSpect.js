@@ -247,34 +247,103 @@ export default describe('JsonClient', () => {
 
   });
 
-  /*describe('submitSharedBox()', () => {
-    it('must call the right URL', async () => {
+  describe('submitSharedBox()', () => {
+    
+    var stub;
 
-      var stub = sinon.stub(Utils,'fetch');
+    const sharedBox = {
+      userEmail: 'user@acme.com',
+      guid: '1c820789a50747df8746aa5d71922a3f',
+      uploadUrl: 'upload_url',
+      recipients: [/* list of Recipient objects*/],
+      attachments: [/*list of Attachment objects*/],
+      message: 'lorem ipsum...',
+      subject: 'Donec rutrum congue leo eget malesuada.',
+      notificationLanguage: 'en',
+      securityOptions: {
+        allowRememberMe: true,
+        allowSms: true,
+        allowVoice: true,
+        allowEmail: true,
+        expirationValue: 5,
+        expirationUnit: 'days',
+        retentionPeriodType: 'do_not_discard',
+        retentionPeriodValue: null,
+        retentionPeriodUnit: 'hours',
+        allowManualClose: true
+      },
+      userId: 1,
+      status: 'in_progress',
+      previewUrl: 'http://sharedbox.com/sharedboxes/dhjewg67ewtfg476/preview',
+      createdAt: '2018-05-24T14:45:35.062Z',
+      updatedAt: '2018-05-24T14:45:35.589Z',
+      expiration: '2018-05-31T14:45:35.038Z',
+      closedAt: null
+    };
 
-      // On crée l'objet bidon constituant le retour du stub
-      var jsonResponse = {
-        'guid': 'dc6f21e0f02c41123b795e4',
-        'uploadUrl': 'upload_url'
-      };
+    const jsonResponse = {
+      guid: '1c820789a50747df8746aa5d71922a3f',
+      userId: 3,
+      subject: 'Donec rutrum congue leo eget malesuada.',
+      expiration: '2018-12-06T05:38:09.951Z',
+      notificationLanguage: 'en',
+      status:'in_progress',
+      allowRememberMe: false,
+      allowSms: false,
+      allowVoice: false,
+      allowEmail: true,
+      retentionPeriodType: 'discard_at_expiration',
+      retentionPeriodValue: null,
+      retentionPeriodUnit: null,
+      previewUrl: 'http://sharedbox.com/sharedboxes/dhjewg67ewtfg476/preview',
+      createdAt: '2018-12-05T22:38:09.965Z',
+      updatedAt: '2018-12-05T22:38:09.965Z'
+    };
 
-      var response = {
-        ok: true,
-        text: function(){
-          return 'NOT NULL';
-        },
-        json: function(){
-          return jsonResponse;
-        }
-      };
+    const text = 'NOT_NULL';
 
-      // Dit a sinon de renvoyer un Promise contenant comme valeur de retour
-      // le contenu de l'objet response.
+    const response = {
+      ok: true,
+      status: 200,
+      statusText: 'statusTest',
+      text: function(){
+        return text;
+      },
+      json: function() {
+        return jsonResponse;
+      }
+    };
+  
+    before(() => {
+      jsonClient = new SharedBox.JsonClient(token, userId, endpoint);
+      stub = sinon.stub(Utils,'fetch');
       stub.resolves(response);
+    });
+    
+    after(() => {
+      stub.restore();
+    });
+
+    it('must return the correct response', async () => {
 
       // On appelle la méthde a tester.
-      var promise = await jsonClient.initializeSharedBox('email@email.com');
+      var promise = await jsonClient.submitSharedBox(sharedBox);
       expect(promise).to.equal(jsonResponse);
     });
-  }); */
+
+    it('must make the Ajax request to the right URL', async () => {
+      expect(stub.getCall(1).args[0]).to.equal(`${text}api/sharedboxes`);
+    });
+
+    it('must make the Ajax request with the right parameters', async () => {
+      expect(stub.getCall(1).args[1]).to.deep.equal({
+        headers: {
+          'Authorization-Token': token,
+          'Content-Type': 'application/json'
+        },
+        method: 'post',
+        body: sharedBox
+      });
+    });
+  });
 });
