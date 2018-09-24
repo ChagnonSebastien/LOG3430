@@ -37,4 +37,10 @@ export default describe('SharedBox', () => {
       expect(sharedBox.closedAt).to.equal('2018-02-04');
     });
   });
+
+  describe('toJson()', () => {
+    it('returns the Json representing the Json', () => {
+      expect(sharedBox.toJson()).to.equal('{"sharedbox":{"guid":null,"userEmail":"email","uploadUrl":"wowUrl","subject":"subject","message":"this is a message","recipients":[],"documentIds":[],"expirationValue":null,"expirationUnit":null,"retentionPeriodType":null,"retentionPeriodValue":null,"retentionPeriodUnit":null,"notificationLanguage":"Russian"}}');
+    });
+  });
 });
