@@ -400,9 +400,329 @@ export default describe('Client', () => {
 
     it('must return the modified sharedbox', async () => {
       const response = await client.submitSharedBox(sharedBox);
-      console.log(JSON.stringify(response));
       expect(response.securityOptions).to.deep.equal(expectedNewSharedBox.securityOptions);
     });
 
   });
+
+  describe('uploadAttachment()', () => {
+
+    let stub;
+
+    let sharedBox = {
+      userEmail: 'user@acme.com',
+      guid: '1c820789a50747df8746aa5d71922a3f',
+      uploadUrl: 'upload_url',
+      recipients: [/* list of Recipient objects*/],
+      attachments: [/*list of Attachment objects*/],
+      message: 'lorem ipsum...',
+      subject: 'Donec rutrum congue leo eget malesuada.',
+      toObject: function(){
+        return this;
+      },
+      toJson: function() {
+        return JSON.stringify(this);
+      },
+      notificationLanguage: 'en',
+      securityOptions: {
+        allowRememberMe: true,
+        allowSms: true,
+        allowVoice: true,
+        allowEmail: true,
+        expirationValue: 5,
+        expirationUnit: 'days',
+        retentionPeriodType: 'do_not_discard',
+        retentionPeriodValue: null,
+        retentionPeriodUnit: 'hours',
+        allowManualClose: true
+      },
+      userId: 1,
+      status: 'in_progress',
+      previewUrl: 'http://sharedbox.com/sharedboxes/dhjewg67ewtfg476/preview',
+      createdAt: '2018-05-24T14:45:35.062Z',
+      updatedAt: '2018-05-24T14:45:35.589Z',
+      expiration: '2018-05-31T14:45:35.038Z',
+      closedAt: null
+    };
+
+    const jsonResponse = { 
+      'temporaryDocument': {
+        'documentGuid': '65f53ec1282c454fa98439dbda134093'
+      }
+    };
+    
+    const response = {
+      ok: true,
+      text: function(){
+        return 'NOT_NULL';
+      },
+      json: function(){
+        return jsonResponse;
+      }
+    };
+    
+    const attachment = {
+      stream: 'buffer',
+      contentType: 'text',
+      filename: 'text.txt'
+    };
+
+    before(() => {
+      client = new SharedBox.Client(token, userId, endpoint);
+    });
+
+    beforeEach(() => {
+      stub = sinon.stub(Utils,'fetch');
+      stub.resolves(response);
+    });
+    
+    afterEach(() => {
+      stub.restore();
+    });
+
+    it('must return right value', async () => {
+      await client.uploadAttachment(sharedBox, attachment).then(result => {
+        attachment.guid = result.temporaryDocument.documentGuid;
+        expect(result).to.deep.equal(attachment);
+      });
+    });
+
+  });
+
+  describe('addRecipient()', () => {
+    
+    it('must throw an error if guid is not specified', async () => {
+      try {
+        client.addRecipient({}, {});
+      } catch (err) {
+        expect(err.message).to.equal('SharedBox GUID cannot be null or undefined');
+      }
+    });
+
+    it('must throw an error if email is not specified', async () => {
+      try {
+        client.addRecipient({guid: 1234324523441235345}, {});
+      } catch (err) {
+        expect(err.message).to.equal('Recipient email cannot be null or undefined');
+      }
+    });
+
+    let stub;
+
+    let sharedBox = {
+      userEmail: 'user@acme.com',
+      guid: '1c820789a50747df8746aa5d71922a3f',
+      uploadUrl: 'upload_url',
+      recipients: [/* list of Recipient objects*/],
+      attachments: [/*list of Attachment objects*/],
+      message: 'lorem ipsum...',
+      subject: 'Donec rutrum congue leo eget malesuada.',
+      toObject: function(){
+        return this;
+      },
+      toJson: function() {
+        return JSON.stringify(this);
+      },
+      notificationLanguage: 'en',
+      securityOptions: {
+        allowRememberMe: true,
+        allowSms: true,
+        allowVoice: true,
+        allowEmail: true,
+        expirationValue: 5,
+        expirationUnit: 'days',
+        retentionPeriodType: 'do_not_discard',
+        retentionPeriodValue: null,
+        retentionPeriodUnit: 'hours',
+        allowManualClose: true
+      },
+      userId: 1,
+      status: 'in_progress',
+      previewUrl: 'http://sharedbox.com/sharedboxes/dhjewg67ewtfg476/preview',
+      createdAt: '2018-05-24T14:45:35.062Z',
+      updatedAt: '2018-05-24T14:45:35.589Z',
+      expiration: '2018-05-31T14:45:35.038Z',
+      closedAt: null
+    };
+
+    const recipient = {
+      toJson: function() {
+        return JSON.stringify(this);
+      },
+      toObject: function(){
+        return this;
+      },
+      id: '59adbccb-87cc-4224-bfd7-314dae796e48',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@email.com',
+      options: {
+        locked: false,
+        bouncedEmail: false,
+        verified: false,
+        contactMethods: [
+          {
+            id: 1,
+            destination: '+55555555555',
+            destinationType: 'office_phone',
+            verified: false,
+            createdAt: '2018-09-01T16:26:07-04:00',
+            updatedAt: '2018-09-01T16:26:07-04:00'
+          },
+          {
+            id: 2,
+            destination: '+1111111111',
+            destinationType: 'cell_phone',
+            verified: true,
+            createdAt: '2018-09-01T16:26:07-04:00',
+            updatedAt: '2018-09-01T16:26:07-04:00'
+          }
+        ]
+      }
+    };
+    
+    const response = {
+      ok: true,
+      text: function(){
+        return 'NOT_NULL';
+      },
+      json: function(){
+        return recipient;
+      }
+    };
+
+    before(() => {
+      client = new SharedBox.Client(token, userId, endpoint);
+    });
+
+    beforeEach(() => {
+      stub = sinon.stub(Utils,'fetch');
+      stub.resolves(response);
+    });
+    
+    afterEach(() => {
+      stub.restore();
+    });
+
+    it('must return right value', async () => {
+      await client.addRecipient(sharedBox, recipient).then(value => {
+        expect(JSON.stringify(value)).to.deep.equal(JSON.stringify({
+          email:'john.doe@email.com',
+          firstName:'John',
+          lastName:'Doe'
+        }));
+      });
+    });
+
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  describe('addRecipient()', () => {
+    
+    it('must throw an error if guid is not specified', async () => {
+      try {
+        client.addRecipient({}, {});
+      } catch (err) {
+        expect(err.message).to.equal('SharedBox GUID cannot be null or undefined');
+      }
+    });
+
+    let stub;
+
+    let sharedBox = {
+      userEmail: 'user@acme.com',
+      guid: '1c820789a50747df8746aa5d71922a3f',
+      uploadUrl: 'upload_url',
+      recipients: [/* list of Recipient objects*/],
+      attachments: [/*list of Attachment objects*/],
+      message: 'lorem ipsum...',
+      subject: 'Donec rutrum congue leo eget malesuada.',
+      toObject: function(){
+        return this;
+      },
+      toJson: function() {
+        return JSON.stringify(this);
+      },
+      notificationLanguage: 'en',
+      securityOptions: {
+        allowRememberMe: true,
+        allowSms: true,
+        allowVoice: true,
+        allowEmail: true,
+        expirationValue: 5,
+        expirationUnit: 'days',
+        retentionPeriodType: 'do_not_discard',
+        retentionPeriodValue: null,
+        retentionPeriodUnit: 'hours',
+        allowManualClose: true
+      },
+      userId: 1,
+      status: 'in_progress',
+      previewUrl: 'http://sharedbox.com/sharedboxes/dhjewg67ewtfg476/preview',
+      createdAt: '2018-05-24T14:45:35.062Z',
+      updatedAt: '2018-05-24T14:45:35.589Z',
+      expiration: '2018-05-31T14:45:35.038Z',
+      closedAt: null
+    };
+    
+    const jsonResponse = {
+      'result': true,
+      'message': 'Sharedbox successfully closed.' 
+    };
+
+    const response = {
+      ok: true,
+      text: function(){
+        return 'NOT_NULL';
+      },
+      json: function(){
+        return jsonResponse;
+      }
+    };
+
+    before(() => {
+      client = new SharedBox.Client(token, userId, endpoint);
+    });
+
+    beforeEach(() => {
+      stub = sinon.stub(Utils,'fetch');
+      stub.resolves(response);
+    });
+    
+    afterEach(() => {
+      stub.restore();
+    });
+
+    it('must return right value', async () => {
+      await client.closeSharedbox(sharedBox).then(value => {
+        expect(value).to.deep.equal(jsonResponse);
+      });
+    });
+
+  });
+
 });
